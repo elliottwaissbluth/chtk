@@ -19,6 +19,11 @@ TODO
 
 ### API
 
+<<<<<<< Updated upstream:chtk/README.md
+=======
+### Documentation
+You can check out the full documentation [here](https://elliottwaissbluth.github.io/chtk/)
+>>>>>>> Stashed changes:README.md
 
 ### Contribution
 TODO
