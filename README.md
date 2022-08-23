@@ -19,6 +19,8 @@ TODO
 
 ### API
 
+### Documentation
+You can check out the full documentation [https://elliottwaissbluth.github.io/chtk/](here)
 
 ### Contribution
 TODO
