@@ -1,0 +1,8 @@
+site_name: My Docs
+site_url: 
+nav:
+  - Home: index.md
+  - User Guide: userguide.md
+  - API: api_reference.md
+
+theme: readthedocs
