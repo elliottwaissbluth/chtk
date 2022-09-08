@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "chtk"
-version = "0.0.1"
+version = "0.0.2"
 description = "A data science toolkit for working with Clone Hero charts."
 authors = ["Elliott Waissbluth <ewaissbluth@gmail.com>"]
 license = "MIT"

@@ -1,8 +1,13 @@
 import numpy as np
-from itertools import combinations
+import pickle
+from pathlib import Path
 
-# chart_to_array -> __chart_to_one_hot -> __chart_to_dict
-
+# Load constants
+with open(Path.cwd() / 'resources' / 'COMBO_DICT.pkl', 'rb') as f:
+    COMBO_DICT = pickle.load(f)
+with open(Path.cwd() / 'resources' / 'INTERMEDIATE_NOTE_MAP.pkl', 'rb') as f:
+    INTERMEDIATE_NOTE_MAP = pickle.load(f)
+    
 def chart_to_array(path, print_release_notes=False):
     '''
     Converts a .chart file to a notes array
@@ -45,7 +50,7 @@ def __chart_to_one_hot(path, print_release_notes=False):
             -   {tick : one hot encoded note event}
     '''
     notes, song_metadata, time_signatures, BPMs = __chart_to_dict(path)
-    notes = shift_ticks(notes, song_metadata, time_signatures, BPMs)
+    notes = __shift_ticks(notes, song_metadata, time_signatures, BPMs)
 
     if notes == None:  # If the chart file is not in .chart format
         return None
@@ -113,12 +118,12 @@ def __chart_to_one_hot(path, print_release_notes=False):
             # print('coded_notes_0[x]: ', coded_notes_0[x])
             coded_notes_0[x].remove(5)
             # print('coded_notes_0[x]: ', coded_notes_0[x])
-            coded_notes_1[x] = map_notes_0(coded_notes_0[x], 'force')
+            coded_notes_1[x] = __map_notes(coded_notes_0[x], 'force')
         elif 6 in coded_notes_0[x]:  # If a tap note
             coded_notes_0[x].remove(6)
-            coded_notes_1[x] = map_notes_0(coded_notes_0[x], 'tap')
+            coded_notes_1[x] = __map_notes(coded_notes_0[x], 'tap')
         else:                        # If a regular note
-            coded_notes_1[x] = map_notes_0(coded_notes_0[x], 'regular')
+            coded_notes_1[x] = __map_notes(coded_notes_0[x], 'regular')
 
     # coded_notes_2 will map the coded_notes_1 values into the syntax of the 
     # values described by all_combinations in the prototyping file
@@ -134,9 +139,6 @@ def __chart_to_one_hot(path, print_release_notes=False):
             notestring += str(note_event)  
         coded_notes_2[x] = notestring
 
-    # TODO: Save this as a constant rather than generating every time
-    # Combo dictionary maps notestrings to one hot representations
-    combo_dictionary = generate_combo_dict()
     # Holds the final {tick : one hot note event} representation of chart
     coded_notes_3 = {} 
     
@@ -151,7 +153,8 @@ def __chart_to_one_hot(path, print_release_notes=False):
     # See prototyping file mentioned in docstring for more information
     for x in coded_notes_2.keys():
         try:
-            coded_notes_3[x] = combo_dictionary[coded_notes_2[x]]
+            # COMBO_DICT maps notestrings to one hot representations
+            coded_notes_3[x] = COMBO_DICT[coded_notes_2[x]]
         except: # TODO: Specify this except statement
             # If released note and new note coincide on a tick
             if __check_for_release_notes(x, coded_notes_2):  
@@ -198,9 +201,9 @@ def __chart_to_one_hot(path, print_release_notes=False):
             if replaced['replacement_digits'][i] \
                 and replaced['release_digits'][i]:                  
                 coded_notes_3[replaced['x'][i]] \
-                    = combo_dictionary[coded_notes_2[replaced['x'][i]]]
+                    = COMBO_DICT[coded_notes_2[replaced['x'][i]]]
                 coded_notes_3[replaced['y'][i]] \
-                    = combo_dictionary[coded_notes_2[replaced['y'][i]]]
+                    = COMBO_DICT[coded_notes_2[replaced['y'][i]]]
             # If the error was flagged as a new note coinciding with a new note
             if replaced['replacement_digits'][i] \
                 and not replaced['release_digits'][i]:  
@@ -224,9 +227,9 @@ def __chart_to_one_hot(path, print_release_notes=False):
                 coded_notes_2[replaced['x'][i]] \
                     = replaced['replacement_digits'][i]
                 coded_notes_3[replaced['x'][i]] \
-                    = combo_dictionary[coded_notes_2[replaced['x'][i]]]
+                    = COMBO_DICT[coded_notes_2[replaced['x'][i]]]
                 # coded_notes_3[replaced['y'][i]] \
-                    # = combo_dictionary[coded_notes_2[replaced['y'][i]]]
+                    # = COMBO_DICT[coded_notes_2[replaced['y'][i]]]
         except:
             try:
                 codes = []
@@ -249,9 +252,9 @@ def __chart_to_one_hot(path, print_release_notes=False):
                 coded_notes_2[replaced['x'][i]] \
                     = replaced['replacement_digits'][i]
                 coded_notes_3[replaced['x'][i]] \
-                    = combo_dictionary[coded_notes_2[replaced['x'][i]]]
+                    = COMBO_DICT[coded_notes_2[replaced['x'][i]]]
                 # coded_notes_3[replaced['y'][i]] \
-                    # = combo_dictionary[coded_notes_2[replaced['y'][i]]]
+                    # = COMBO_DICT[coded_notes_2[replaced['y'][i]]]
             except:
                 raise NameError('Release notes are not in combo dictionary')
     
@@ -301,7 +304,8 @@ def __chart_to_dict(path):
         with open(path, 'r') as file:
             raw_chart = file.readlines()
         file.close()
-    except Exception as err:  # This will happen when the chart is not in .chart format
+    # This will happen when the chart is not in .chart format
+    except Exception as err:  
         print(f'Exception: {err}')
         print(f'input path: {path}')
         return None, None, None, None
@@ -322,12 +326,14 @@ def __chart_to_dict(path):
             i = 1
         elif data == '[SyncTrack]':
             i = 2
-        elif data in ['[Events]', '[EasySingle]', '[MediumSingle]','[HardSingle]']:
+        elif data in ['[Events]', '[EasySingle]', '[MediumSingle]', 
+                      '[HardSingle]']:
             i = 3
         elif data == '[ExpertSingle]':
             i = 4
         
-        if data in ['{', '}', '[Song]', 'ï»¿[Song]', '[SyncTrack]', '[Events]', '[ExpertSingle]']:
+        if data in ['{', '}', '[Song]', 'ï»¿[Song]', '[SyncTrack]', 
+                    '[Events]', '[ExpertSingle]']:
             continue
         if data[0] == ' ':
             if i == 1:
@@ -394,15 +400,15 @@ def __chart_to_dict(path):
                 notes['note'].append(line[2])
                 notes['duration'].append(int(line[3]))
 
-    # Parse the 'song' section of the .chart file to get relevent chart information
+    # Parse the 'song' section of the .chart file to get relevent information
     song_metadata = {'Name' : '',
-                        'Artist' : '',
-                        'Charter' : '',
-                        'Offset' : '',
-                        'Resolution' : '',
-                        'Genre' : '',
-                        'MediaType' : '',
-                        'MusicStream' : ''}
+                     'Artist' : '',
+                     'Charter' : '',
+                     'Offset' : '',
+                     'Resolution' : '',
+                     'Genre' : '',
+                     'MediaType' : '',
+                     'MusicStream' : ''}
     if song:
         for data in song:
             line = data.split(' ')
@@ -417,19 +423,32 @@ def __chart_to_dict(path):
 
     return notes, song_metadata, time_signatures, BPMs
 
-def shift_ticks(notes, song_metadata, time_signatures, BPMs):
+def __shift_ticks(notes, song_metadata, time_signatures, BPMs):
     '''
-    shift_ticks converts the time signatures to 31.25 BPM w/ TS 4, i.e. the ticks are
-    shifted to correspond to 10ms slots.
-        - Parameters come from __chart_to_dict 
+    Helper function for __chart_to_one_hot()
+    
+    Converts the note representation gathered by __chart_to_dict() and converts
+    the notes so they have a single time signature (4) and BPM (31.25). These
+    values are chosen because they cause ticks to correspond to 10ms slots.
+    
+    Args:
+        All args are output from __chart_to_dict(), see docstring for details
+    
+    Returns:
+        shifted_notes (dict): same format as the notes dict (see
+        __chart_to_dict() docstring) but with ticks changed to account for new 
+        uniform time signature and BPM
     '''
-    # Split the song into bins corresponding to particular time signatures and BPMs
+    # Split the song into bins corresponding to time signatures and BPMs
     
     # First, assemble some lists from the preprocessing step
+    # note_keys organized as (tick, 'N_S', note)
     note_keys = list(zip(notes['tick'], notes['N_S'], 
-                    notes['note'], notes['duration']))                    # (tick, 'N_S', note)
-    TS_events = list(zip(time_signatures['tick'], time_signatures['TS']))  # (tick, TS)
-    BPM_events = list(zip(BPMs['tick'], BPMs['BPM']))                      # (tick, BPM)
+                    notes['note'], notes['duration']))
+    # TS_events organized as (tick, TS)                    
+    TS_events = list(zip(time_signatures['tick'], time_signatures['TS']))
+    # BPM_events organized as (tick, BPM)
+    BPM_events = list(zip(BPMs['tick'], BPMs['BPM']))
 
     # Append None at the end of these lists so the loop knows where to stop
     TS_events.append(None)
@@ -606,7 +625,7 @@ def shift_ticks(notes, song_metadata, time_signatures, BPMs):
 
     # Populate 'X' and 'sync_tick' field of bins
     for i in range(len(bins['shift_tick'])):
-        bins['X'].append(BPM_new / bins['BPM'][i])  # 31250 = 31.25 beats/minute * 1000, this BPM corresponds to 10ms per tick
+        bins['X'].append(BPM_new / bins['BPM'][i])  # 31250 = 31.25 beats/minute 
 
         if i == 0:
             bins['sync_tick'].append(0)
@@ -623,14 +642,16 @@ def shift_ticks(notes, song_metadata, time_signatures, BPMs):
             
             # Construct shift length
             if j == 0 and i != 0:
-                bins['shift'].append(round((bins['shift_tick'][i] * bins['X'][i])) - (round((bins['shift_tick'][i] * bins['X'][i-1])) - bins['shift'][i-1]))
+                bins['shift'].append(round((bins['shift_tick'][i] * bins['X'][i])) \
+                    - (round((bins['shift_tick'][i] * bins['X'][i-1])) \
+                        - bins['shift'][i-1]))
 
             bins['notes'][i][j][0] = round(bins['notes'][i][j][0]*bins['X'][i])  # Scale tick mark
             bins['notes'][i][j][3] = round(bins['notes'][i][j][3]*bins['X'][i])  # Scale duration
             bins['notes'][i][j][0] -= bins['shift'][i]                           # Shift
 
     # Convert back to dictionary format
-    shifted_notes = {'tick' : [],        # What tick the note is at
+    shifted_notes = {'tick' : [],       # What tick the note is at
                     'N_S' : [],         # Whether it is a note (N) or star power (S)
                     'note' : [],        # What the note is 
                     'duration': []}     # tick duration of the note or star power
@@ -650,12 +671,14 @@ def get_configuration(path):
     Gets metadata from the song.ini file within a song's directory
 
     Args:
-        path (Path): Path to song folder
+        path (Path): path to song folder
+
+    Returns:
+        configuration (dict): metadata values from song.ini
     '''
     # Read chart into array
-    with open(path + '\\song.ini', 'r') as file:
-        raw_chart = file.readlines()
-    file.close()
+    with open(path / 'song.ini', 'r') as f:
+        raw_chart = f.readlines()
 
     # Configuration is held in a dictionary
     configuration = {}
@@ -673,124 +696,46 @@ def get_configuration(path):
             pass
 
     # Turn int values into ints
-    return(configuration)
+    return configuration
 
 
 
-def map_notes_0(note_array, note_type):
+def __map_notes(note_array, note_type):
     '''
-    map_notes_0 maps a note array from the initial representation to an intermediate
-    representation that can be processed later into a full one hot representation.
-    The note_array should be preprocessed so that force and tap flags are removed.
-    This function is utilized by __chart_to_one_hot()
-    - note_array = array of notes
-    - type = 'regular', 'force', or 'tap'
+    Helper function for __chart_to_one_hot()
+    
+    Takes the initial extracted note representation from __chart_to_dict() and
+    creates an intermediate representation that is useful to determine the
+    final notes array.
+
+    Args:
+        note_array (list of int): Array of notes for each tick as presented in
+            coded_notes_0
+        note_type (str): Either regular, force, or tap
+    
+    Returns:
+        note_array(list of int): New note array with converted format suitable
+            for coded_notes_1
     '''
-    assert note_type in ['regular', 'force', 'tap'], 'note_type should be "regular", "force", or "tap"'
+    assert note_type in ['regular', 'force', 'tap'], \
+        'note_type should be "regular", "force", or "tap"'
     
     # Behold, the great elif statement that should have been a dictionary.
     for i in range(len(note_array)):
-        if note_array[i] == 0:
-            note_array[i] = 10
-        elif note_array[i] == 10:
-            note_array[i] = 13
-        elif note_array[i] == 20:
-            note_array[i] = 16
-        elif note_array[i] == 1:
-            note_array[i] = 17            
-        elif note_array[i] == 11:
-            note_array[i] = 20
-        elif note_array[i] == 21:
-            note_array[i] = 23
-        elif note_array[i] == 2:
-            note_array[i] = 24
-        elif note_array[i] == 12:
-            note_array[i] = 27
-        elif note_array[i] == 22:
-            note_array[i] = 30
-        elif note_array[i] == 3:
-            note_array[i] = 31
-        elif note_array[i] == 13:
-            note_array[i] = 34
-        elif note_array[i] == 23:
-            note_array[i] = 37
-        elif note_array[i] == 4:
-            note_array[i] = 38
-        elif note_array[i] == 14:
-            note_array[i] = 41
-        elif note_array[i] == 24:
-            note_array[i] = 44
-        elif note_array[i] == 7:
-            note_array[i] = 45
-        elif note_array[i] == 17:  # Added these last two as a patch - need to check
-            note_array[i] = 48
-        elif note_array[i] == 27:
-            note_array[i] = 51
+        if note_array[i] in INTERMEDIATE_NOTE_MAP.keys():
+            note_array[i] = INTERMEDIATE_NOTE_MAP[note_array[i]] 
         else:
             print(note_array)
-            print('The erroneous note in note_array at index {} is {}'.format(i, note_array[i]))
+            print('The erroneous note in note_array at index {} is {}'\
+                .format(i, note_array[i]))
             raise NameError('Error: note encoded incorrectly')
 
-        if note_type == 'regular':
-            continue
-        elif note_type == 'force':
+        if note_type == 'force':
             note_array[i] += 1
         elif note_type == 'tap':
             note_array[i] += 2
 
     return note_array
-
-
-def generate_combo_dict():
-    '''
-    Generates a dictionary mapping note events to simple one hot representations.
-    This function is utilized by __chart_to_one_hot()
-    - keys = combinations strings
-    - values = condensed one hot representation
-    '''
-    # To one hot encode, we need to generate a list of all the possible unique values each note event could take on
-    g = list(range(10,17))
-    r = list(range(17,24))
-    y = list(range(24,31))
-    b = list(range(31,38))
-    o = list(range(38,45))
-
-    note_vals = [g, r, y, b, o]
-    note_vals = np.array(note_vals)
-
-    rr = note_vals[:,0]  # regular regular
-    rf = note_vals[:,1]  # regular forced
-    rt = note_vals[:,2]  # regular tapped
-    hr = note_vals[:,3]  # held regular
-    hf = note_vals[:,4]  # held forced
-    ht = note_vals[:,5]  # held tapped
-    release = note_vals[:,6]  # release
-    note_combos = [rr, rf, rt, hr, hf, ht, release]
-
-    all_combinations = []  # Will hold all possible note combinations
-    for combo_class in note_combos:
-        for combo_length in range(1, len(combo_class)+1):
-            for combo in list(combinations(combo_class, combo_length)):
-                keystring = ''
-                for element in combo:
-                    keystring += str(element)
-                all_combinations.append(keystring)
-
-    # Add open notes
-    all_combinations.append('45')
-    all_combinations.append('46')
-    all_combinations.append('47')
-    all_combinations.append('48')
-    all_combinations.append('49')
-    all_combinations.append('50')
-    all_combinations.append('51')
-
-    combo_dictionary = {}
-    for i in range(1, len(all_combinations)+1):
-        combo_dictionary[all_combinations[i-1]] = i
-
-    return combo_dictionary
-
 
 def __check_for_release_notes(x, coded_notes_2):
     '''

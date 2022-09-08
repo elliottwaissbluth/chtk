@@ -4,7 +4,7 @@ from pathlib import Path
 
 
 def test_version():
-    assert __version__ == '0.0.1'
+    assert __version__ == '0.0.2'
 
 def test_compute_mel_spectrogram():
     song_path = Path.cwd() / 'tests' / 'example_song' / 'separated.ogg'

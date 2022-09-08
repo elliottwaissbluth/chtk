@@ -35,8 +35,6 @@ def load_song(song_dir):
  
     return notes_array, audio, sr
 
-
-
 def compute_mel_spectrogram(song_path):
     '''
     Computes the log-mel spectrogram of a .ogg file
@@ -57,6 +55,19 @@ def compute_mel_spectrogram(song_path):
     spec = power_to_db(spec, ref=np.max)
     return spec
 
+def simplify_notes_array(notes_array):
+    '''
+    Removes all modifiers and released notes from a notes array.
+
+    Args:
+        notes_array (1D numpy array): notes array with modifiers and released
+            notes one hot encoded
+
+    Returns:
+        simplified_notes_array (1D numpy array): notes array with released notes
+            removed and modifiers changed from held or tapped to regular.
+    '''
+    return __remove_modifiers(__remove_release_keys(notes_array))
 # ---------------------------------------------------------------------------- #
 #                               HELPER FUNCTIONS                               #
 # ---------------------------------------------------------------------------- #
