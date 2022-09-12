@@ -1,11 +1,7 @@
-from pathlib import Path
 import matplotlib.pyplot as plt
 import numpy as np
-import pickle
+from constants import VIZ_DICT
 
-# viz_dict maps one hot indices to their corresponding .chart representation
-with open(Path.cwd() / 'resources' / 'VIZ_DICT.pkl', 'rb') as f:
-    VIZ_DICT = pickle.load(f)
 
 note_idx_to_y = { # Note index to y position on plots
     1 : 5,

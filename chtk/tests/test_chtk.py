@@ -7,6 +7,6 @@ def test_version():
     assert __version__ == '0.0.2'
 
 def test_compute_mel_spectrogram():
-    song_path = Path.cwd() / 'tests' / 'example_song' / 'separated.ogg'
+    song_path = Path.cwd() / 'tests' / 'song' / 'separated.ogg'
     spec = compute_mel_spectrogram(song_path)
     assert spec.shape == (512, 13918) 

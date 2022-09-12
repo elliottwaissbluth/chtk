@@ -1,12 +1,6 @@
 import numpy as np
-import pickle
-from pathlib import Path
+from constants import COMBO_DICT, INTERMEDIATE_NOTE_MAP
 
-# Load constants
-with open(Path.cwd() / 'resources' / 'COMBO_DICT.pkl', 'rb') as f:
-    COMBO_DICT = pickle.load(f)
-with open(Path.cwd() / 'resources' / 'INTERMEDIATE_NOTE_MAP.pkl', 'rb') as f:
-    INTERMEDIATE_NOTE_MAP = pickle.load(f)
     
 def chart_to_array(path, print_release_notes=False):
     '''
@@ -27,7 +21,7 @@ def chart_to_array(path, print_release_notes=False):
     notes_array = np.zeros(max(coded_notes.keys()))
     for k, v in coded_notes.items():
         notes_array[k-1] = v   # This could potentially offset all notes by 10ms
-    return notes_array
+    return notes_array.astype(np.uint8)
 
 def __chart_to_one_hot(path, print_release_notes=False):
     '''
