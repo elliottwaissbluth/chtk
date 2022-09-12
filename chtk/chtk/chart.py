@@ -1,5 +1,5 @@
 import numpy as np
-from constants import COMBO_DICT, INTERMEDIATE_NOTE_MAP
+from .constants import COMBO_DICT, INTERMEDIATE_NOTE_MAP
 
     
 def chart_to_array(path, print_release_notes=False):

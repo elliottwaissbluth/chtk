@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
-from constants import VIZ_DICT
+from .constants import VIZ_DICT
 
 
 note_idx_to_y = { # Note index to y position on plots
@@ -39,7 +39,7 @@ def slice_notes(notes, start=0, end=2):
     else:
         return notes[:, start_tick:end_tick]
 
-def plot_chart(ground_truth=None, candidate=None, audio=None, SHOW=True):
+def plot_chart(ground_truth=None, candidate=None, audio=None, show=True):
     '''
     Plots Guitar Hero charts and spectrograms using matplotlib.
     
@@ -50,7 +50,7 @@ def plot_chart(ground_truth=None, candidate=None, audio=None, SHOW=True):
         ground_truth (list of int): ground truth notes array
         candidate (list of int): candidate notes array
         audio (2D numpy matrix): spectrogram
-        SHOW (bool): If true, will show the generated plot in place
+        show (bool): If true, will show the generated plot in place
 
     Returns:
         fig (matplotlib figure): contains the full generated plot
@@ -86,7 +86,7 @@ def plot_chart(ground_truth=None, candidate=None, audio=None, SHOW=True):
     
     fig.align_xlabels(axes)
     
-    if SHOW:
+    if show:
         plt.show()
 
     return fig
