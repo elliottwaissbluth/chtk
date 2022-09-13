@@ -18,6 +18,14 @@ from .constants import SIMPLIFIED_NOTE_DICT
 # ---------------------------------------------------------------------------- #
 
 class SongDataset:
+    '''
+    NOTE:
+    Reorganize this so that the core data structure consists of Song objects.
+    Make a method that allows you to get a dataframe from it.
+    
+    If pandas DataFrame is your main data structure, you could really screw
+    yourself down the line
+    '''
     def __init__(self, 
                  directory: Path,
                  fill_notes_array: bool = True,
@@ -115,6 +123,8 @@ class Song:
             elif kv[1].strip('-').strip('.').isdigit(): # if value is float
                 kv[1] = float(kv[1])
             self.config[kv[0]] = kv[1]
+
+        # self.name comes from config file rather than folder name
         self.name = self.config['name']
 
 
