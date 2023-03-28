@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
-from .constants import VIZ_DICT
+from constants import VIZ_DICT
 
 
 note_idx_to_y = { # Note index to y position on plots
@@ -39,7 +39,7 @@ def slice_notes(notes, start=0, end=2):
     else:
         return notes[:, start_tick:end_tick]
 
-def plot_chart(ground_truth=None, candidate=None, audio=None, show=True):
+def plot_chart(ground_truth=None, candidate=None, audio=None, title=None):
     '''
     Plots Guitar Hero charts and spectrograms using matplotlib.
     
@@ -59,7 +59,9 @@ def plot_chart(ground_truth=None, candidate=None, audio=None, show=True):
                    + int(audio is not None)
     assert num_subplots > 0, 'ERROR, plot_chart was called without input'
     
-    fig, axes = plt.subplots(num_subplots)
+    fig, axes = plt.subplots(num_subplots, constrained_layout=True)
+    fig.align_xlabels(axes)
+
     if ground_truth is not None:
         fig.set_size_inches(min(len(ground_truth)/40, 900), 2*num_subplots)
     elif candidate is not None:
@@ -69,25 +71,18 @@ def plot_chart(ground_truth=None, candidate=None, audio=None, show=True):
     if num_subplots == 1:
         axes = [axes]
 
-    # ground truth plot
     if ground_truth is not None:
         __create_scatter_axes(ground_truth, axes[ax_idx])
         axes[ax_idx].set_title('Ground Truth')
         ax_idx += 1
-
-    # candidate plot
     if candidate is not None:
         __create_scatter_axes(candidate, axes[ax_idx])
         axes[ax_idx].set_title('Candidate')
         ax_idx += 1
-
     if audio is not None:
         axes[ax_idx].imshow(audio, aspect='auto', origin='lower')
     
-    fig.align_xlabels(axes)
-    
-    if show:
-        plt.show()
+    plt.show()
 
     return fig
 
@@ -134,7 +129,6 @@ def __create_scatter_axes(notes, ax=None):
 
     # Plot and format GRYBO notes
     ax.set_ylim((0,6))
-    ax.set_xlabel('Ticks', fontsize=15)
     ax.set_yticks(np.arange(0,7,1))
     ax.grid(axis= 'y', which='both')
     ax.set_axisbelow(True)

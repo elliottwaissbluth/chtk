@@ -1,13 +1,14 @@
 import numpy as np
-from .constants import COMBO_DICT, INTERMEDIATE_NOTE_MAP
+from constants import COMBO_DICT, INTERMEDIATE_NOTE_MAP
 
     
 def chart_to_array(path, print_release_notes=False):
     '''
-    Converts a .chart file to a notes array
+    Converts a .chart file to a notes array. A notes array is a ndarray with
+    shape ()
     
     Args:
-        path (Path): Path top .chart file
+        path (Path): Path single .chart file
     
     Returns:
         notes_array (1D numpy array): notes array
@@ -36,7 +37,7 @@ def __chart_to_one_hot(path, print_release_notes=False):
         path (Path): path to .chart file
         print_release_notes (bool) = if True, will output a feed of release 
             notes that had to be bumped forward due to overlap with the start of
-            a new note
+            a new notesingle 
     
     Returns:
         coded_notes_3 (dict): Dictionary containing ticks and note events for 
@@ -192,15 +193,13 @@ def __chart_to_one_hot(path, print_release_notes=False):
         coded_notes_2[replaced['y'][i]] = replaced['release_digits'][i]
         try:
             # If the error was flagged as a new note coinciding with a release
-            if replaced['replacement_digits'][i] \
-                and replaced['release_digits'][i]:                  
+            if replaced['replacement_digits'][i] and replaced['release_digits'][i]:                  
                 coded_notes_3[replaced['x'][i]] \
                     = COMBO_DICT[coded_notes_2[replaced['x'][i]]]
                 coded_notes_3[replaced['y'][i]] \
                     = COMBO_DICT[coded_notes_2[replaced['y'][i]]]
             # If the error was flagged as a new note coinciding with a new note
-            if replaced['replacement_digits'][i] \
-                and not replaced['release_digits'][i]:  
+            if replaced['replacement_digits'][i] and not replaced['release_digits'][i]:  
                 codes = []
                 code = ''
                 for digit in replaced['replacement_digits'][i]:

@@ -1,0 +1,3 @@
+#!C:\Users\Bizon\Documents\GitHub\chtk\chtk_env\Scripts\python.exe
+from numba.pycc import main
+main()
