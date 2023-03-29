@@ -41,7 +41,7 @@ def slice_notes(notes, start=0, end=2):
 
 def plot_chart(ground_truth=None, candidate=None, audio=None, title=None):
     '''
-    Plots Guitar Hero charts and spectrograms using matplotlib.
+    Plots Clone Hero charts and spectrograms using matplotlib.
     
     Can also be used to plot spectrograms without notes, just fill in the audio 
     arg without ground_truth or candidate.
@@ -81,11 +81,24 @@ def plot_chart(ground_truth=None, candidate=None, audio=None, title=None):
         ax_idx += 1
     if audio is not None:
         axes[ax_idx].imshow(audio, aspect='auto', origin='lower')
+        axes[ax_idx].set_yticks([0, audio.shape[0]-1])
     
+    # Add onset ticks to top of audio plot
+    line_height = audio.shape[0] // 20
+    xticks = [i for i,x in enumerate(ground_truth) if x]
+    axes[ax_idx].set_xticks(xticks)
+    axes[ax_idx].tick_params(
+        axis = 'x',
+        direction = 'in',
+        length = line_height,
+        color = 'r',
+        top = True,
+        bottom = False,
+        labelbottom = False
+    )
+
     plt.show()
-
-    return fig
-
+    
 def __create_scatter_axes(notes, ax=None):
     '''
     Helper function for plot_chart(), creates a matplotlib axis from a notes 
