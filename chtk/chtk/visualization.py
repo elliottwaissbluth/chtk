@@ -1,7 +1,13 @@
 import matplotlib.pyplot as plt
 import numpy as np
-from constants import VIZ_DICT
-
+try: # Lil hack for development
+    from .constants import VIZ_DICT
+except ImportError as err:
+    import warnings
+    warnings.warn(
+        f'Replacing "import .package" with "import package"', ImportWarning
+        )
+    from constants import VIZ_DICT
 
 note_idx_to_y = { # Note index to y position on plots
     1 : 5,

@@ -5,4 +5,6 @@ nav:
   - User Guide: userguide.md
   - API: api_reference.md
 
-theme: readthedocs
+theme: 
+  name: terminal
+  palette: gruvbox_dark

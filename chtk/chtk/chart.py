@@ -1,5 +1,12 @@
 import numpy as np
-from constants import COMBO_DICT, INTERMEDIATE_NOTE_MAP
+try:
+    from .constants import COMBO_DICT, INTERMEDIATE_NOTE_MAP
+except ImportError as err:
+    import warnings
+    warnings.warn(
+        f'Replacing "import .package" with "import package"', ImportWarning
+        )
+    from constants import COMBO_DICT, INTERMEDIATE_NOTE_MAP
 
     
 def chart_to_array(path, print_release_notes=False):

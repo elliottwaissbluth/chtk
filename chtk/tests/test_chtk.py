@@ -10,6 +10,10 @@ def test_version():
 # ---------------------------------------------------------------------------- #
 #                                function tests                                #
 # ---------------------------------------------------------------------------- #
+# to run full test script:
+#   > pytest -v
+# to run single test function:
+#   > pytest -k <function name> -v 
 
 def test_compute_mel_spectrogram():
     '''Includes tests for
@@ -33,5 +37,5 @@ def test_SongDataset():
 def test_Song():
     song_dir = Path.cwd() / 'chtk' / 'tests' / 'data' / 'song_0'
     song = Song(song_dir)
-    song.fill_notes_array()
-    song.visualize(start=500)
+    song.fill_notes()
+    song.plot(start=500)

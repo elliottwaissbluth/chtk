@@ -10,15 +10,21 @@ from dataclasses import dataclass, field
 from typing import List
 from numpy import ndarray
 
-from chart import chart_to_array
-from visualization import plot_chart
-from constants import SIMPLIFIED_NOTE_DICT
+try:
+    from .chart import chart_to_array
+    from .visualization import plot_chart
+    from .constants import SIMPLIFIED_NOTE_DICT
+except ImportError as err:
+    import warnings
+    warnings.warn(
+        f'Replacing "import .package" with "import package"', ImportWarning
+        )
+    from chart import chart_to_array
+    from visualization import plot_chart
+    from constants import SIMPLIFIED_NOTE_DICT
 
-# ---------------------------------------------------------------------------- #
-#                                 data classes                                 #
-# ---------------------------------------------------------------------------- #
 
-class SongDataset:
+class TrackPack:
     '''
     NOTE:
     Reorganize this so that the core data structure consists of Song objects.
@@ -32,6 +38,14 @@ class SongDataset:
                  fill_notes_array: bool = True,
                  fill_audio: bool = False,
                  fill_spectrogram: bool = False):
+        '''
+
+        Args:
+            directory (Path): Top level track pack
+            fill_notes_array (bool, optional): _description_. Defaults to True.
+            fill_audio (bool, optional): _description_. Defaults to False.
+            fill_spectrogram (bool, optional): _description_. Defaults to False.
+        '''
 
         song_paths = [Path((p,_)[0]) 
                       for p,_ in self.parse_chart_files(directory)]
@@ -85,6 +99,7 @@ class Song:
             into any of the previous categories
         multiple_audios (bool): True if more than one audio file is present in
             directory, False otherwise.
+        directory (Path): The path to the 
         
     Manual Parameters:
     (Populated manually by calling class functions)
@@ -131,7 +146,7 @@ class Song:
     spectrogram: ndarray = field(default=None)
     spectrogram_file: Path = field(default=None)
     
-    
+
     def __post_init__(self) -> None:
         '''Populates class parameters from files in directory
         '''
@@ -186,6 +201,7 @@ class Song:
         self.notes = chart_to_array(self.chart_file)
         self.simple_notes = simplify_notes_array(self.notes)
     
+
     def fill_audio(self) -> None:
         if self.multiple_audios:
             warnings.warn('Multiple audio support is not implemented yet, \
@@ -193,6 +209,7 @@ class Song:
         else: 
             self.audio, self.sr = load(str(self.audio_files[0]))
     
+
     def fill_spectrogram(self, 
                          n_fft: int = 4096, 
                          hop_length:int = 441, 
@@ -225,6 +242,7 @@ class Song:
                                               power=power)
         self.spectrogram = power_to_db(self.spectrogram, ref=np.max)
     
+
     def plot(self, start=None, end=None, show=False):
         '''Generates a quick plot of the chart
 
@@ -250,6 +268,7 @@ class Song:
 #                                 PREPROCESSING                                #
 # ---------------------------------------------------------------------------- #
 
+
 def load_song(song_dir):
     '''Loads audio, sr, and notes array from song_dir, returns audio and notes 
     array sliced into 4 second chunks
@@ -271,6 +290,7 @@ def load_song(song_dir):
     audio, sr = load(str(song_dir / 'other.wav'))
  
     return notes_array, audio, sr
+
 
 def compute_mel_spectrogram(song_path):
     '''
